@@ -1,0 +1,1 @@
+{"name":"plano-aula-pedrinha-branca","private":true,"type":"module","scripts":{"dev":"wrangler dev","deploy":"wrangler deploy","db:migrate:local":"wrangler d1 migrations apply pedrinha-branca --local","db:migrate":"wrangler d1 migrations apply pedrinha-branca --remote","seed:sql":"node scripts-seed.mjs"},"devDependencies":{"wrangler":"^4.0.0"}}

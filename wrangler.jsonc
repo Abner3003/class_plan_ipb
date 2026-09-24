@@ -1,0 +1,27 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "plano-aula-pedrinha-branca",
+	"main": "src/index.js",
+	"compatibility_date": "2026-09-24",
+	"assets": {
+		"directory": "./public",
+		"binding": "ASSETS"
+	},
+	"vars": {
+		"OPENAI_MODEL": "gpt-5-mini"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "pedrinha-branca",
+			"database_id": "bc267bc1-b425-495f-aed1-9dac0c6ec215",
+			"migrations_dir": "migrations"
+		},
+		{
+			"binding": "pedrinha_branca",
+			"database_name": "pedrinha-branca",
+			"database_id": "bc267bc1-b425-495f-aed1-9dac0c6ec215",
+			"remote": true
+		}
+	]
+}

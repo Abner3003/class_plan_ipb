@@ -1,0 +1,3 @@
+CREATE TABLE IF NOT EXISTS teachers (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL UNIQUE,access_code_hash TEXT NOT NULL,code_salt TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS lesson_plans (id TEXT PRIMARY KEY,teacher_id INTEGER NOT NULL,title TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','final')),data TEXT NOT NULL DEFAULT '{}',created_at TEXT NOT NULL,updated_at TEXT NOT NULL,FOREIGN KEY(teacher_id) REFERENCES teachers(id));
+CREATE INDEX IF NOT EXISTS idx_plans_teacher_updated ON lesson_plans(teacher_id,updated_at DESC);
