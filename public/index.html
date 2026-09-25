@@ -124,15 +124,18 @@
 <div class="appbar"><div><strong id="hello"></strong><span id="saveStatus" class="save-status" role="status" aria-live="polite"></span></div><div class="workspace-actions"><button type="button" id="newPlan" class="top-btn">+ Novo plano</button><button type="button" id="logout" class="top-btn">Sair</button></div></div>
 <div id="plans" class="plans"><label class="plan-picker" for="planSelect"><span>Meus planos</span><select id="planSelect"><option value="">Carregando planos…</option></select></label></div>
 <div class="workspace-heading"><h1 id="planTitle" class="workspace-title">Nova lição</h1><p class="intro">Prepare cada momento da aula. Suas alterações são salvas automaticamente.</p></div>
-<div class="grid three"><label><span>Nome da lição / número</span><input id="lessonName" aria-label="Nome da lição ou número" placeholder="Ex.: Lição 1 — Deus criou o mundo"></label><label><span>Data</span><input type="date" aria-label="Data"></label><label><span>Turma / faixa etária</span><input aria-label="Turma ou faixa etária"></label></div>
-<label><span>Tema da aula</span><textarea style="--field-height:54px"></textarea></label>
-<div class="grid two"><label><span>Referência bíblica</span><input></label><label><span>Duração prevista</span><input></label></div>
-<label><span>Versículo da aula (texto completo)</span><textarea style="--field-height:78px"></textarea></label>
+<div class="section"><h2>OBJETIVOS DA AULA</h2><p>O que as crianças devem aprender e vivenciar nesta aula.</p></div>
+<label><span>Objetivos da aula</span><textarea name="lesson_objectives" style="--field-height:110px"></textarea></label>
+<div class="section"><h2>INFORMAÇÕES DA AULA</h2></div>
+<div class="grid three"><label><span>Nome da lição / número</span><input name="field_0" id="lessonName" aria-label="Nome da lição ou número" placeholder="Ex.: Lição 1 — Deus criou o mundo"></label><label><span>Data</span><input name="field_1" type="date" aria-label="Data"></label><label><span>Turma / faixa etária</span><input name="field_2" aria-label="Turma ou faixa etária"></label></div>
+<label><span>Tema da aula</span><textarea name="field_3" style="--field-height:54px"></textarea></label>
+<div class="grid two"><label><span>Referência bíblica</span><input name="field_4"></label><label><span>Duração prevista</span><input name="field_5"></label></div>
+<label><span>Versículo da aula (texto completo)</span><textarea name="field_6" style="--field-height:78px"></textarea></label>
 <div class="section"><h2>1. ACOLHIDA</h2><p>Como receber as crianças, organizar a roda e envolver cada uma.</p></div>
-<label><span>Orientações para a acolhida</span><textarea style="--field-height:85px">
+<label><span>Orientações para a acolhida</span><textarea name="field_7" style="--field-height:85px">
   Momento de receber as mães e bebês, cumprimentos de forma calma, com alegria mantendo o foco para iniciar a aula sem agitar os bebês, além da acomodação das mães e bebês no tatame. Orientar para que cada mãe conduza seus filhos durante a aula, mantenha a segurança entre os bebês e observe atentamente a condução da professora no manejo dos instrumentos. 
 </textarea></label>
-<label><span>Músicas 1, 2 e 3: título, letra ou referência e sequência</span><textarea id="lessonSongs" style="--field-height:150px"></textarea></label>
+<label><span>Músicas 1, 2 e 3: título, letra ou referência e sequência</span><textarea name="field_8" id="lessonSongs" style="--field-height:150px"></textarea></label>
 <div class="song-library" aria-label="Biblioteca de músicas">
   <div class="song-library-controls">
     <label for="songSelect"><span>Escolher música existente</span><select id="songSelect"><option value="">Selecione uma música</option></select></label>
@@ -140,33 +143,36 @@
   </div>
   <p class="song-library-help">A música será adicionada ao final do campo acima. Você ainda pode editar a letra normalmente.</p>
 </div>
-<label><span>Oração para iniciar a aula (fala, gesto ou condução)</span><textarea style="--field-height:85px"></textarea></label>
+<label><span>Oração para iniciar a aula (fala, gesto ou condução)</span><textarea name="field_9" style="--field-height:85px"></textarea></label>
 
 
 <div class="section"><h2>2. LIÇÃO ANTERIOR / REVISÃO</h2></div>
-<label><span>O que recordar; perguntas, falas e ligação com a aula de hoje</span><textarea style="--field-height:150px"></textarea></label>
+<label><span>O que recordar; perguntas, falas e ligação com a aula de hoje</span><textarea name="field_10" style="--field-height:150px"></textarea></label>
 <div class="section"><h2>3. CANTO E EXPLORAÇÃO</h2><p>Registre a ordem exata de músicas, quais materiais serão utilizados em cada música, falas, gestos e ações.</p></div>
-<label><span>Aula - Espaço para a descrição das músicas e da história bíblica</span><textarea style="--field-height:170px"></textarea></label>
+<label><span>Aula - Espaço para a descrição das músicas e da história bíblica</span><textarea name="field_11" style="--field-height:170px"></textarea></label>
 
 
 <div class="section"><h2>4. PREPARAÇÃO / MATERIAIS</h2></div>
-<label><span>O que levar: quantidade, preparo e quem ficará responsável</span><textarea style="--field-height:205px"></textarea></label>
+<label><span>O que levar: quantidade, preparo e quem ficará responsável</span><textarea name="field_12" style="--field-height:205px"></textarea></label>
 <div class="section"><h2>5. PARLENDA</h2><p>Levar em conta a acentuação correta das palavras para que esteja de acordo com a métrica.</p></div>
-<label><span>Texto e orientações para a parlenda</span><textarea style="--field-height:235px"></textarea></label>
+<label><span>Texto e orientações para a parlenda</span><textarea name="field_13" style="--field-height:235px"></textarea></label>
 
 
-<div class="section"><h2>6. RELAXAMENTO</h2><p>Momento de calma antes da atividade; inclua a memorização do versículo.</p></div>
-<label><span>Música(s), letra / referência, gestos e condução</span><textarea style="--field-height:215px"></textarea></label>
-<label><span>Momento de oração pelos amigos, escolha uma criança para orar.</span><textarea style="--field-height:165px"></textarea></label>
-<div class="section"><h2>7. ATIVIDADE</h2><p>Descreva a atividade</p></div>
-<label><span>Passo a passo da atividade com as crianças</span><textarea style="--field-height:220px"></textarea></label>
+<div class="section"><h2>6. REFLEXÃO PARA AS MÃES</h2><p>Uma mensagem bíblica para encorajar as mães e aplicar no dia a dia com os filhos.</p></div>
+<label><span>Reflexão para as mães</span><textarea name="mothers_reflection" style="--field-height:150px"></textarea></label>
+
+<div class="section"><h2>7. RELAXAMENTO</h2><p>Momento de calma antes da atividade; inclua a memorização do versículo.</p></div>
+<label><span>Música(s), letra / referência, gestos e condução</span><textarea name="field_14" style="--field-height:215px"></textarea></label>
+<label><span>Momento de oração pelos amigos, escolha uma criança para orar.</span><textarea name="field_15" style="--field-height:165px"></textarea></label>
+<div class="section"><h2>8. ATIVIDADE</h2><p>Descreva a atividade</p></div>
+<label><span>Passo a passo da atividade com as crianças</span><textarea name="field_16" style="--field-height:220px"></textarea></label>
 
 
-<label><span>Materiais da atividade e preparação prévia</span><textarea style="--field-height:185px"></textarea></label>
-<div class="section"><h2>8. ENCERRAMENTO</h2></div>
-<label><span>Música / fala de despedida, guardar brinquedos e transição</span><textarea style="--field-height:180px"></textarea></label>
-<label><span>Lanche: momento, organização e cuidados combinados</span><textarea style="--field-height:150px"></textarea></label>
-<div class="grid two"><label><span>Professora responsável</span><input></label><label><span>Plano revisado em</span><input type="date"></label></div>
+<label><span>Materiais da atividade e preparação prévia</span><textarea name="field_17" style="--field-height:185px"></textarea></label>
+<div class="section"><h2>9. ENCERRAMENTO</h2></div>
+<label><span>Música / fala de despedida, guardar brinquedos e transição</span><textarea name="field_18" style="--field-height:180px"></textarea></label>
+<label><span>Lanche: momento, organização e cuidados combinados</span><textarea name="field_19" style="--field-height:150px"></textarea></label>
+<div class="grid two"><label><span>Professora responsável</span><input name="field_20"></label><label><span>Plano revisado em</span><input name="field_21" type="date"></label></div>
 
 </div>
 </article>
@@ -215,7 +221,7 @@ Que nos leva à liberdade.`
     }
   ];
   const fields=[...document.querySelectorAll('input,textarea')].filter(x=>!x.closest('#login'));
-  fields.forEach((f,i)=>{ if(!f.name) f.name='field_'+i; });
+  // Field names are stable storage keys: keep legacy keys when reordering the form.
   document.querySelectorAll('textarea').forEach(field=>{const printValue=document.createElement('div');printValue.className='print-value';printValue.setAttribute('aria-hidden','true');field.insertAdjacentElement('afterend',printValue);const update=()=>{field.style.height='auto';field.style.height=Math.max(field.scrollHeight,parseFloat(getComputedStyle(field).minHeight))+'px';printValue.textContent=field.value||' ';};field.addEventListener('input',update);update();const actions=document.createElement('div');actions.className='ai-actions';actions.innerHTML='<button type="button" class="ai-btn" data-action="complete">✨ Completar com IA</button><button type="button" class="ai-btn" data-action="spellcheck">✓ Corrigir ortografia</button>';printValue.insertAdjacentElement('afterend',actions);actions.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;b.disabled=true;const old=b.textContent;b.textContent='Aguarde…';try{const r=await api('/api/ai',{method:'POST',body:JSON.stringify({action:b.dataset.action,field:field.closest('label')?.querySelector('span')?.textContent||'',text:field.value,context:getAIContext(field)})});field.value=r.text;field.dispatchEvent(new Event('input'));queueSave();}catch(err){alert(err.message)}finally{b.disabled=false;b.textContent=old}})});
   async function api(url,opt={}){const r=await fetch(url,{headers:{'content-type':'application/json',...(opt.headers||{})},...opt});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Erro na requisição');return d}
   function getAIContext(activeField){
