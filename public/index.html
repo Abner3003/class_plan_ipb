@@ -72,7 +72,7 @@
   @media screen {
     body { background:#f1f5f2; }
     main { padding:32px 20px 64px; }
-    .sheet { width:min(100%,1000px); padding:0 48px 48px; border-radius:18px; overflow:hidden; box-shadow:0 12px 45px #173e3510; }
+    .sheet { width:min(100%,1000px); padding:0 48px 48px; border-radius:18px; overflow:clip; box-shadow:0 12px 45px #173e3510; }
     .page-header { margin:0 -48px 28px; padding:32px 48px; background:linear-gradient(115deg,#10492c,#164d48 60%,#163d65); border-bottom:4px solid #dab95f; }
     .page-header strong { font-size:23px; letter-spacing:.04em; }
     .page-header span { display:block; margin-top:6px; font-size:13px; }
@@ -114,16 +114,52 @@
     .grid.three,.grid.two { gap:0; }
   }
   @media print { .appbar,.plans,.auth-overlay,.song-library { display:none!important; } }
+
+  .progress-heading { display:flex; align-items:baseline; gap:8px 12px; flex-wrap:wrap; }
+  #progressText { color:var(--teal); font-size:13px; white-space:nowrap; }
+  #lessonProgress { display:block; width:100%; height:8px; margin:10px 0 8px; border:0; border-radius:8px; overflow:hidden; background:#e3ebe6; accent-color:var(--teal); }
+  #lessonProgress::-webkit-progress-bar { background:#e3ebe6; }
+  #lessonProgress::-webkit-progress-value { background:var(--teal); border-radius:8px; }
+  #lessonProgress::-moz-progress-bar { background:var(--teal); border-radius:8px; }
+  #requiredStatus { margin:0; font-size:12px; color:var(--muted); }
+  .lesson-block { margin:12px 0; border:1px solid var(--line); border-radius:10px; }
+  .lesson-block > .section { margin:0; }
+  .lesson-block > .section h2 { padding:0; border:0; background:none; }
+  .section-toggle { display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; border:0; border-radius:9px; padding:17px 16px; background:#edf4ef; color:var(--teal); font:inherit; text-align:left; cursor:pointer; }
+  .section-toggle::after { content:'⌄'; font-size:20px; line-height:1; flex:none; }
+  .section-toggle[aria-expanded="true"]::after { transform:rotate(180deg); }
+  .section-toggle:hover { background:#e3eee6; }
+  .section-content { padding:18px 16px 0; }
+  .section-content > p { margin:0 0 18px; color:var(--muted); font-size:12px; }
+  .required-hint { font-size:11px; font-weight:400; color:var(--muted); }
+  @media screen {
+    .workspace-heading { position:sticky; top:0; z-index:10; padding:14px 0; background:#fff; border-bottom:1px solid var(--line); box-shadow:0 6px 8px -8px #163d3540; }
+    .lesson-block, input, textarea { scroll-margin-top:145px; }
+  }
+  @media print {
+    .workspace-heading { position:static; }
+    #progressText,#lessonProgress,#requiredStatus,.intro,.required-hint { display:none!important; }
+    .lesson-block { border:0; margin:19px 0 12px; }
+    .section-content[hidden] { display:block!important; }
+    .section-content { padding:12px 0 0; }
+    .section-toggle { padding:7px 11px; color:#fff; background:var(--teal); print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+    .section-toggle::after { display:none; }
+  }
 </style>
 </head>
 <body>
-<div id="login" class="auth-overlay"><form id="loginForm" class="auth-card"><img class="login-logo" src="/logo_ipb.png" alt="Igreja Presbiteriana do Brasil"><h1>Sala Pedrinha Branca</h1><p>Entre para continuar seu plano de aula.</p><label>Professora<select id="teacherName"><option>Suellen</option><option>Samara</option><option>Julia</option><option>Agata</option></select></label><label>Código de acesso<input id="teacherCode" type="password" autocomplete="current-password" required></label><div id="loginError" class="error"></div><button class="primary">Entrar</button></form></div><main>
+<div id="login" class="auth-overlay"><form id="loginForm" class="auth-card"><img class="login-logo" src="/logo_ipb.png" alt="Igreja Presbiteriana do Brasil"><h1>Sala Pedrinha Branca</h1><p>Entre para continuar seu plano de aula.</p><label>Professora<select id="teacherName"><option>Suellen</option><option>Samara</option><option>Julia</option><option>Agata</option><option>Andressa</option></select></label><label>Código de acesso<input id="teacherCode" type="password" autocomplete="current-password" required></label><div id="loginError" class="error"></div><button class="primary">Entrar</button></form></div><main>
 <article class="sheet">
 <header class="page-header"><div class="page-header-inner"><img class="page-header-logo" src="/logo_ipb.png" alt="Igreja Presbiteriana do Brasil"><div class="page-header-title"><strong>SALA PEDRINHA BRANCA</strong><span>Ficha de plano de aula</span></div><button type="button" onclick="window.print()">Download</button></div></header>
 <div class="page-body">
 <div class="appbar"><div><strong id="hello"></strong><span id="saveStatus" class="save-status" role="status" aria-live="polite"></span></div><div class="workspace-actions"><button type="button" id="newPlan" class="top-btn">+ Novo plano</button><button type="button" id="logout" class="top-btn">Sair</button></div></div>
 <div id="plans" class="plans"><label class="plan-picker" for="planSelect"><span>Meus planos</span><select id="planSelect"><option value="">Carregando planos…</option></select></label></div>
-<div class="workspace-heading"><h1 id="planTitle" class="workspace-title">Nova lição</h1><p class="intro">Prepare cada momento da aula. Suas alterações são salvas automaticamente.</p></div>
+<div class="workspace-heading">
+  <div class="progress-heading"><h1 id="planTitle" class="workspace-title">Nova lição</h1><span id="progressText">0% preenchida</span></div>
+  <progress id="lessonProgress" max="100" value="0" aria-label="Preenchimento da aula">0%</progress>
+  <p id="requiredStatus" role="status" aria-live="polite"></p>
+</div>
+<p class="intro">Clique em uma seção para editar. Suas alterações são salvas automaticamente.</p>
 <div class="section"><h2>OBJETIVOS DA AULA</h2><p>O que as crianças devem aprender e vivenciar nesta aula.</p></div>
 <label><span>Objetivos da aula</span><textarea name="lesson_objectives" style="--field-height:110px"></textarea></label>
 <div class="section"><h2>INFORMAÇÕES DA AULA</h2></div>
@@ -222,16 +258,59 @@ Que nos leva à liberdade.`
   ];
   const fields=[...document.querySelectorAll('input,textarea')].filter(x=>!x.closest('#login'));
   // Field names are stable storage keys: keep legacy keys when reordering the form.
-  document.querySelectorAll('textarea').forEach(field=>{const printValue=document.createElement('div');printValue.className='print-value';printValue.setAttribute('aria-hidden','true');field.insertAdjacentElement('afterend',printValue);const update=()=>{field.style.height='auto';field.style.height=Math.max(field.scrollHeight,parseFloat(getComputedStyle(field).minHeight))+'px';printValue.textContent=field.value||' ';};field.addEventListener('input',update);update();const actions=document.createElement('div');actions.className='ai-actions';actions.innerHTML='<button type="button" class="ai-btn" data-action="complete">✨ Completar com IA</button><button type="button" class="ai-btn" data-action="spellcheck">✓ Corrigir ortografia</button>';printValue.insertAdjacentElement('afterend',actions);actions.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;b.disabled=true;const old=b.textContent;b.textContent='Aguarde…';try{const r=await api('/api/ai',{method:'POST',body:JSON.stringify({action:b.dataset.action,field:field.closest('label')?.querySelector('span')?.textContent||'',text:field.value,context:getAIContext(field)})});field.value=r.text;field.dispatchEvent(new Event('input'));queueSave();}catch(err){alert(err.message)}finally{b.disabled=false;b.textContent=old}})});
+  const requiredNames = new Set(['field_0','field_1','field_2','lesson_objectives','field_3','field_4','field_20']);
+  fields.filter(field=>requiredNames.has(field.name)).forEach(field=>{
+    field.setAttribute('aria-required','true');
+    const hint=document.createElement('small');
+    hint.className='required-hint';hint.textContent=' (obrigatório)';
+    field.closest('label').querySelector('span').append(hint);
+  });
+  function resizeField(field){
+    field.style.height='auto';
+    field.style.height=Math.max(field.scrollHeight,parseFloat(getComputedStyle(field).minHeight))+'px';
+  }
+  function setSectionOpen(block,open){
+    block.querySelector('.section-toggle').setAttribute('aria-expanded',String(open));
+    block.querySelector('.section-content').hidden=!open;
+    if(open)block.querySelectorAll('textarea').forEach(resizeField);
+  }
+  document.querySelectorAll('.page-body > .section').forEach((heading,index)=>{
+    const block=document.createElement('section');block.className='lesson-block';
+    heading.before(block);
+    const panel=document.createElement('div');panel.className='section-content';panel.id='section-content-'+index;
+    let next=heading.nextElementSibling;
+    while(next && !next.classList.contains('section')){
+      const following=next.nextElementSibling;panel.append(next);next=following;
+    }
+    const description=heading.querySelector('p');if(description)panel.prepend(description);
+    const title=heading.querySelector('h2');
+    const button=document.createElement('button');button.type='button';button.className='section-toggle';
+    button.textContent=title.textContent;button.id='section-toggle-'+index;
+    button.setAttribute('aria-controls',panel.id);panel.setAttribute('aria-labelledby',button.id);
+    title.replaceChildren(button);block.append(heading,panel);
+    button.addEventListener('click',()=>setSectionOpen(block,panel.hidden));
+    setSectionOpen(block,false);
+  });
+  function updateProgress(){
+    const filled=fields.filter(field=>field.value.trim()).length;
+    const percentage=Math.round(filled/fields.length*100);
+    $('#lessonProgress').value=percentage;$('#lessonProgress').textContent=percentage+'%';
+    $('#progressText').textContent=percentage+'% preenchida';
+    const missing=fields.filter(field=>requiredNames.has(field.name)&&!field.value.trim()).length;
+    const message=missing===0?'Todos os campos obrigatórios estão preenchidos.'
+      :missing===1?'Falta 1 campo obrigatório para finalizar.'
+      :`Faltam ${missing} campos obrigatórios para finalizar.`;
+    if($('#requiredStatus').textContent!==message)$('#requiredStatus').textContent=message;
+  }
+  fields.forEach(field=>field.addEventListener('input',updateProgress));
+  updateProgress();
+  document.querySelectorAll('textarea').forEach(field=>{const printValue=document.createElement('div');printValue.className='print-value';printValue.setAttribute('aria-hidden','true');field.insertAdjacentElement('afterend',printValue);const update=()=>{resizeField(field);printValue.textContent=field.value||' ';};field.addEventListener('input',update);update();const actions=document.createElement('div');actions.className='ai-actions';actions.innerHTML='<button type="button" class="ai-btn" data-action="complete">✨ Completar com IA</button><button type="button" class="ai-btn" data-action="spellcheck">✓ Corrigir ortografia</button>';printValue.insertAdjacentElement('afterend',actions);actions.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;b.disabled=true;const old=b.textContent;b.textContent='Aguarde…';try{const r=await api('/api/ai',{method:'POST',body:JSON.stringify({action:b.dataset.action,field:field.closest('label')?.querySelector('span')?.textContent||'',text:field.value,context:getAIContext(field)})});field.value=r.text;field.dispatchEvent(new Event('input'));queueSave();}catch(err){alert(err.message)}finally{b.disabled=false;b.textContent=old}})});
   async function api(url,opt={}){const r=await fetch(url,{headers:{'content-type':'application/json',...(opt.headers||{})},...opt});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Erro na requisição');return d}
   function getAIContext(activeField){
     return fields.filter(field=>field!==activeField && field.value.trim()).map(field=>{
       const label=field.closest('label');
-      let previous=label;
-      while(previous && previous.parentElement!==document.querySelector('.page-body'))previous=previous.parentElement;
-      while(previous && !previous.classList.contains('section'))previous=previous.previousElementSibling;
       return {
-        section:previous?.querySelector('h2')?.textContent?.trim() || 'Informações gerais da aula',
+        section:field.closest('.lesson-block')?.querySelector('h2')?.textContent?.trim() || 'Informações gerais da aula',
         field:label?.querySelector('span')?.textContent?.trim() || field.getAttribute('aria-label') || field.name,
         text:field.value.trim()
       };
@@ -239,7 +318,7 @@ Que nos leva à liberdade.`
   }
   function getData(){return Object.fromEntries(fields.map(f=>[f.name,f.value]))} function setData(d={}){fields.forEach(f=>{f.value=d[f.name]||'';if(f.tagName==='TEXTAREA')f.dispatchEvent(new Event('input'))});revision=0;savedRevision=0;clearTimeout(saveTimer);updateTitle()}
   function title(){return $('#lessonName').value.trim() || 'Nova lição'}
-  function updateTitle(){ $('#planTitle').textContent=title(); }
+  function updateTitle(){ $('#planTitle').textContent=title();updateProgress(); }
   function queueSave(){if(!currentPlan)return;revision++;updateTitle();$('#saveStatus').textContent='Salvando…';clearTimeout(saveTimer);saveTimer=setTimeout(()=>save().catch(()=>{}),1200)}
   async function save(){
     clearTimeout(saveTimer);
@@ -267,7 +346,7 @@ Que nos leva à liberdade.`
   };
   async function loadPlans(){const d=await api('/api/plans');const select=$('#planSelect');select.replaceChildren();d.plans.forEach(p=>select.add(new Option(`${p.title} · ${p.status==='final'?'Final':'Rascunho'}`,p.id)));select.value=currentPlan||'';return d.plans}
   async function openPlan(id){await save();const p=await api('/api/plans/'+id);currentPlan=id;setData(p.data);$('#planSelect').value=id;$('#saveStatus').textContent='Rascunho carregado';}
-  async function createPlan(){await save();const p=await api('/api/plans',{method:'POST',body:JSON.stringify({title:'Nova lição'})});currentPlan=p.id;setData({});await loadPlans();$('#saveStatus').textContent='Novo rascunho';$('#lessonName').focus()}
+  async function createPlan(){await save();const p=await api('/api/plans',{method:'POST',body:JSON.stringify({title:'Nova lição'})});currentPlan=p.id;setData({});await loadPlans();$('#saveStatus').textContent='Novo rascunho';setSectionOpen($('#lessonName').closest('.lesson-block'),true);$('#lessonName').focus()}
   async function navigate(action){const controls=[$('#planSelect'),$('#newPlan'),$('#logout')];controls.forEach(c=>c.disabled=true);try{await action()}catch(e){$('#planSelect').value=currentPlan||'';alert(e.message)}finally{controls.forEach(c=>c.disabled=false)}}
   $('#loginForm').onsubmit=async e=>{e.preventDefault();$('#loginError').textContent='';try{const d=await api('/api/login',{method:'POST',body:JSON.stringify({name:$('#teacherName').value,code:$('#teacherCode').value})});start(d.teacher)}catch(err){$('#loginError').textContent=err.message}};
   async function start(t){$('#login').classList.add('hidden');$('#hello').textContent='Olá, '+t.name;await navigate(async()=>{const plans=await loadPlans();if(plans[0])await openPlan(plans[0].id);else await createPlan()})}
