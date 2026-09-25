@@ -285,7 +285,7 @@ Que nos leva à liberdade.`
     const description=heading.querySelector('p');if(description)panel.prepend(description);
     const title=heading.querySelector('h2');
     const button=document.createElement('button');button.type='button';button.className='section-toggle';
-    button.textContent=title.textContent;button.id='section-toggle-'+index;
+    button.textContent=title.textContent;button.setAttribute('aria-label',title.textContent);button.id='section-toggle-'+index;
     button.setAttribute('aria-controls',panel.id);panel.setAttribute('aria-labelledby',button.id);
     title.replaceChildren(button);block.append(heading,panel);
     button.addEventListener('click',()=>setSectionOpen(block,panel.hidden));
