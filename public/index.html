@@ -68,6 +68,11 @@
   .song-library label { margin:0; }
   .song-library-controls { display:grid; grid-template-columns:1fr auto; gap:9px; align-items:end; }
   .song-library button { min-height:46px; white-space:nowrap; }
+  .song-library-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:9px; }
+  .song-library .song-library-actions button { min-height:38px; }
+  .song-library .danger { color:#9b2c2c; }
+  .song-editor { margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }
+  .song-editor label { display:block; margin-bottom:10px; }
   .song-library-help { margin:8px 0 0; color:var(--muted); font-size:11px; }
   @media screen {
     body { background:#f1f5f2; }
@@ -145,12 +150,23 @@
     .section-toggle { padding:7px 11px; color:#fff; background:var(--teal); print-color-adjust:exact; -webkit-print-color-adjust:exact; }
     .section-toggle::after { display:none; }
   }
+  .rich-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:4px; padding:5px 6px; border:1px solid var(--line); border-bottom:0; border-radius:8px 8px 0 0; background:#f5f8f6; font-weight:400; font-size:11px; color:var(--muted); }
+  .rich-toolbar button { min-width:26px; height:26px; padding:0 6px; border:1px solid var(--line); border-radius:5px; background:#fff; color:var(--navy); cursor:pointer; font:700 13px Arial,Helvetica,sans-serif; }
+  .rich-toolbar button:hover { border-color:#93b4a3; }
+  .rich-toolbar .swatch { min-width:22px; width:22px; height:22px; padding:0; border-radius:50%; }
+  .rich-toolbar .sep { width:1px; height:18px; margin:0 4px; background:var(--line); }
+  .rich-editor { min-height:var(--field-height, 75px); padding:12px; border:1px solid var(--line); border-radius:0 0 8px 8px; background:#fff; color:var(--navy); font:14px/1.5 Arial,Helvetica,sans-serif; font-weight:400; white-space:pre-wrap; overflow-wrap:anywhere; outline:none; cursor:text; }
+  .rich-editor:hover { border-color:#93b4a3; }
+  .rich-editor:focus-visible { outline:3px solid #4b94c8; outline-offset:3px; }
+  .rich-source { display:none!important; }
+  @media print { .rich-toolbar { display:none!important; } .rich-editor { min-height:var(--field-height, 75px); padding:9px 11px; border-radius:0; background:#f9fbfb; print-color-adjust:exact; -webkit-print-color-adjust:exact; } }
+  .auth-card .show-pass{display:flex;align-items:center;gap:6px;margin:-8px 0 12px;font-size:13px;cursor:pointer}.auth-card .show-pass input{width:auto;margin:0}
 </style>
 </head>
 <body>
-<div id="login" class="auth-overlay"><form id="loginForm" class="auth-card"><img class="login-logo" src="/logo_ipb.png" alt="Igreja Presbiteriana do Brasil"><h1>Sala Pedrinha Branca</h1><p>Entre para continuar seu plano de aula.</p><label>Professora<select id="teacherName"><option>Suellen</option><option>Samara</option><option>Julia</option><option>Agata</option><option>Andressa</option></select></label><label>Código de acesso<input id="teacherCode" type="password" autocomplete="current-password" required></label><div id="loginError" class="error"></div><button class="primary">Entrar</button></form></div><main>
+<div id="login" class="auth-overlay"><form id="loginForm" class="auth-card"><img class="login-logo" src="/logo_ipb.png" alt="Igreja Presbiteriana do Brasil"><h1>Sala Pedrinha Branca</h1><p>Entre para continuar seu plano de aula.</p><label>Professora<select id="teacherName"><option>Suellen</option><option>Samara</option><option>Julia</option><option>Agata</option><option>Andressa</option></select></label><label>Código de acesso<input id="teacherCode" type="password" autocomplete="current-password" required></label><label class="show-pass"><input id="showPass" type="checkbox"> Mostrar senha</label><div id="loginError" class="error"></div><button class="primary">Entrar</button></form></div><main>
 <article class="sheet">
-<header class="page-header"><div class="page-header-inner"><img class="page-header-logo" src="/logo_ipb.png" alt="Igreja Presbiteriana do Brasil"><div class="page-header-title"><strong>SALA PEDRINHA BRANCA</strong><span>Ficha de plano de aula</span></div><button type="button" onclick="window.print()">Download</button></div></header>
+<header class="page-header"><div class="page-header-inner"><img class="page-header-logo" src="/logo_ipb.png" alt="Igreja Presbiteriana do Brasil"><div class="page-header-title"><strong>SALA PEDRINHA BRANCA</strong><span>Ficha de plano de aula</span></div><button type="button" id="savePlan">Salvar</button><button type="button" onclick="window.print()">Download</button></div></header>
 <div class="page-body">
 <div class="appbar"><div><strong id="hello"></strong><span id="saveStatus" class="save-status" role="status" aria-live="polite"></span></div><div class="workspace-actions"><button type="button" id="newPlan" class="top-btn">+ Novo plano</button><button type="button" id="logout" class="top-btn">Sair</button></div></div>
 <div id="plans" class="plans"><label class="plan-picker" for="planSelect"><span>Meus planos</span><select id="planSelect"><option value="">Carregando planos…</option></select></label></div>
@@ -177,7 +193,20 @@
     <label for="songSelect"><span>Escolher música existente</span><select id="songSelect"><option value="">Selecione uma música</option></select></label>
     <button type="button" id="addSong" class="top-btn" disabled>+ Adicionar ao plano</button>
   </div>
-  <p class="song-library-help">A música será adicionada ao final do campo acima. Você ainda pode editar a letra normalmente.</p>
+  <div class="song-library-actions">
+    <button type="button" id="newSong" class="top-btn">Nova música</button>
+    <button type="button" id="editSong" class="top-btn" disabled>Editar</button>
+    <button type="button" id="deleteSong" class="top-btn danger" disabled>Excluir</button>
+  </div>
+  <div id="songEditor" class="song-editor" hidden>
+    <label><span>Título da música</span><input id="songTitle" maxlength="120"></label>
+    <label><span>Letra</span><textarea id="songText" maxlength="10000" style="--field-height:150px"></textarea></label>
+    <div class="song-library-actions">
+      <button type="button" id="saveSong" class="top-btn">Salvar música</button>
+      <button type="button" id="cancelSong" class="top-btn">Cancelar</button>
+    </div>
+  </div>
+  <p class="song-library-help">A música será adicionada ao final do campo acima. Você ainda pode editar a letra normalmente. Alterações na biblioteca valem para todas as professoras.</p>
 </div>
 <label><span>Oração para iniciar a aula (fala, gesto ou condução)</span><textarea name="field_9" style="--field-height:85px"></textarea></label>
 
@@ -215,48 +244,8 @@
 </main>
 <script>
   const $=s=>document.querySelector(s); let currentPlan=null, saveTimer=null, revision=0, savedRevision=0, saving=null;
-  const songLibrary=[
-    {
-      title:'Música 1 — Alô, Noah!',
-      text:`Música 1 — Alô, Noah!
-Alô, Noah! Como vai, Noah?
-Que bom que você veio!
-Gosto muito de você!
-Lembrar das mamães.`
-    },
-    {
-      title:'Música 2 — Começou a aula',
-      text:`Música 2 — Começou a aula
-Começou a aula
-Nós vamos cantar
-Pedir ao Papai do Céu
-Para ajudar
-A nossa titia que vai ensinar
-Com tanto carinho
-A gente a orar
-Embora pequeno
-Vou obedecer
-E tudo que a tia falar
-Vou fazer
-Nesse lindo dia
-Eu vou aprender
-E a Deus com carinho
-Vou agradecer.`
-    },
-    {
-      title:'Música 3 — Olá, olá',
-      text:`Música 3 — Olá, olá
-Olá, olá
-Agora vou falar
-Da Palavra que é vida
-E nos ensina a caminhar
-É assim, esse livro
-Deus nos deu para o ensino
-É a Bíblia, a verdade
-Que nos leva à liberdade.`
-    }
-  ];
-  const fields=[...document.querySelectorAll('input,textarea')].filter(x=>!x.closest('#login'));
+  let songLibrary=[];
+  const fields=[...document.querySelectorAll('input,textarea')].filter(x=>!x.closest('#login,.song-library'));
   // Field names are stable storage keys: keep legacy keys when reordering the form.
   const requiredNames = new Set(['field_0','field_1','field_2','lesson_objectives','field_3','field_4','field_20']);
   fields.filter(field=>requiredNames.has(field.name)).forEach(field=>{
@@ -289,7 +278,7 @@ Que nos leva à liberdade.`
     button.setAttribute('aria-controls',panel.id);panel.setAttribute('aria-labelledby',button.id);
     title.replaceChildren(button);block.append(heading,panel);
     button.addEventListener('click',()=>setSectionOpen(block,panel.hidden));
-    setSectionOpen(block,false);
+    setSectionOpen(block,true);
   });
   function updateProgress(){
     const filled=fields.filter(field=>field.value.trim()).length;
@@ -304,7 +293,86 @@ Que nos leva à liberdade.`
   }
   fields.forEach(field=>field.addEventListener('input',updateProgress));
   updateProgress();
-  document.querySelectorAll('textarea').forEach(field=>{const printValue=document.createElement('div');printValue.className='print-value';printValue.setAttribute('aria-hidden','true');field.insertAdjacentElement('afterend',printValue);const update=()=>{resizeField(field);printValue.textContent=field.value||' ';};field.addEventListener('input',update);update();const actions=document.createElement('div');actions.className='ai-actions';actions.innerHTML='<button type="button" class="ai-btn" data-action="complete">✨ Completar com IA</button><button type="button" class="ai-btn" data-action="spellcheck">✓ Corrigir ortografia</button>';printValue.insertAdjacentElement('afterend',actions);actions.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;b.disabled=true;const old=b.textContent;b.textContent='Aguarde…';try{const r=await api('/api/ai',{method:'POST',body:JSON.stringify({action:b.dataset.action,field:field.closest('label')?.querySelector('span')?.textContent||'',text:field.value,context:getAIContext(field)})});field.value=r.text;field.dispatchEvent(new Event('input'));queueSave();}catch(err){alert(err.message)}finally{b.disabled=false;b.textContent=old}})});
+  const TEXT_COLORS=[['Azul escuro','#163d65'],['Vermelho','#c0392b'],['Azul','#1f6fd1'],['Verde','#1e7b45'],['Roxo','#7b3fa0'],['Laranja','#d35400']];
+  const HIGHLIGHTS=[['Amarelo','#fff3a3'],['Verde claro','#c9f2d0'],['Rosa','#ffd1e3'],['Azul claro','#cfe6ff']];
+  const escapeHtml=text=>text.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+  const plainToHtml=text=>escapeHtml(text).replace(/\n/g,'<br>');
+  const looksLikeHtml=value=>/<(br|div|p|span|b|strong|i|em|u|font|mark)\b[^>]*>/i.test(value);
+  const SAFE_COLOR=/^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\)|[a-z]+)$/i;
+  const ALLOWED_TAGS=new Set(['B','STRONG','I','EM','U','BR','DIV','P','SPAN','FONT','MARK']);
+  // Only formatting survives: unknown tags are unwrapped and every attribute except colours is dropped.
+  function sanitizeHtml(html){
+    const tpl=document.createElement('template');tpl.innerHTML=html;
+    (function clean(node){
+      [...node.childNodes].forEach(child=>{
+        if(child.nodeType===Node.TEXT_NODE)return;
+        if(child.nodeType!==Node.ELEMENT_NODE){child.remove();return}
+        clean(child);
+        if(!ALLOWED_TAGS.has(child.tagName)){child.replaceWith(...(['SCRIPT','STYLE','TEMPLATE','IFRAME','OBJECT'].includes(child.tagName)?[]:child.childNodes));return}
+        const color=child.style.color, background=child.style.backgroundColor, fontWeight=child.style.fontWeight, fontColor=child.getAttribute('color');
+        [...child.attributes].forEach(attr=>child.removeAttribute(attr.name));
+        if(color&&SAFE_COLOR.test(color.replace(/\s/g,'')))child.style.color=color;
+        if(background&&SAFE_COLOR.test(background.replace(/\s/g,'')))child.style.backgroundColor=background;
+        if(/^(bold|[6-9]00)$/.test(fontWeight))child.style.fontWeight='bold';
+        if(child.tagName==='FONT'&&fontColor&&SAFE_COLOR.test(fontColor))child.setAttribute('color',fontColor);
+      });
+    })(tpl.content);
+    return tpl.innerHTML;
+  }
+  const valueToHtml=value=>value?(looksLikeHtml(value)?sanitizeHtml(value):plainToHtml(value)):'';
+  const plainText=field=>field.editor?field.editor.innerText.replace(/\n{3,}/g,'\n\n').trim():field.value.trim();
+  function syncFromEditor(field){
+    field.value=field.editor.textContent.trim()?sanitizeHtml(field.editor.innerHTML):'';
+    field.dispatchEvent(new Event('input'));
+  }
+  function renderEditor(field){field.editor.innerHTML=valueToHtml(field.value)}
+  function replaceUndoable(field,text){
+    if(!field.editor){field.focus();field.select();if(!document.execCommand('insertText',false,text)){field.value=text;field.dispatchEvent(new Event('input'))}return}
+    const editor=field.editor;editor.focus();
+    const range=document.createRange();range.selectNodeContents(editor);
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(range);
+    if(!document.execCommand('insertHTML',false,plainToHtml(text)||'<br>')){editor.innerHTML=plainToHtml(text);syncFromEditor(field)}
+  }
+  function appendUndoable(field,text){
+    if(!field.editor){replaceUndoable(field,[field.value.trim(),text].filter(Boolean).join('\n\n'));return}
+    const editor=field.editor;editor.focus();
+    const range=document.createRange();range.selectNodeContents(editor);range.collapse(false);
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(range);
+    const html=(editor.textContent.trim()?'<br><br>':'')+plainToHtml(text);
+    if(!document.execCommand('insertHTML',false,html)){editor.insertAdjacentHTML('beforeend',html);syncFromEditor(field)}
+  }
+  function format(editor,command,value){
+    editor.focus();document.execCommand('styleWithCSS',false,true);
+    if(command==='hiliteColor'&&!document.execCommand('hiliteColor',false,value))document.execCommand('backColor',false,value);
+    else document.execCommand(command,false,value);
+  }
+  fields.filter(field=>field.tagName==='TEXTAREA').forEach(field=>{
+    const labelText=field.closest('label')?.querySelector('span')?.textContent?.trim()||field.name;
+    const toolbar=document.createElement('div');toolbar.className='rich-toolbar';toolbar.setAttribute('role','toolbar');toolbar.setAttribute('aria-label','Formatação: '+labelText);
+    const tool=(label,title,command,value,style)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.title=title;b.setAttribute('aria-label',title);b.dataset.command=command;if(value)b.dataset.value=value;if(style){b.className='swatch';b.style.background=style}toolbar.append(b)};
+    const sep=text=>{const s=document.createElement('span');s.className='sep';toolbar.append(s);if(text)toolbar.append(text)};
+    tool('B','Negrito','bold');
+    sep('Cor:');TEXT_COLORS.forEach(([name,color])=>tool('',`Cor do texto: ${name}`,'foreColor',color,color));
+    sep('Destaque:');HIGHLIGHTS.forEach(([name,color])=>tool('',`Destaque: ${name}`,'hiliteColor',color,color));
+    tool('✕','Remover destaque','hiliteColor','transparent');
+    sep();tool('Limpar','Remover formatação','removeFormat');
+    const editor=document.createElement('div');editor.className='rich-editor';editor.contentEditable='true';
+    editor.setAttribute('role','textbox');editor.setAttribute('aria-multiline','true');editor.setAttribute('aria-label',labelText);
+    if(field.getAttribute('aria-required'))editor.setAttribute('aria-required','true');
+    editor.style.setProperty('--field-height',field.style.getPropertyValue('--field-height')||'75px');
+    // Point the label at nothing so clicks inside it don't try to focus the hidden textarea.
+    const label=field.closest('label');if(label)label.htmlFor='rich-'+field.name;
+    field.classList.add('rich-source');field.tabIndex=-1;field.editor=editor;
+    field.after(toolbar,editor);
+    // Keep the selection inside the editor while clicking toolbar buttons.
+    toolbar.addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()});
+    toolbar.addEventListener('click',e=>{const b=e.target.closest('button');if(b)format(editor,b.dataset.command,b.dataset.value)});
+    editor.addEventListener('input',()=>syncFromEditor(field));
+    editor.addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,e.clipboardData.getData('text/plain'))});
+    editor.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='b'){e.preventDefault();format(editor,'bold')}});
+    const actions=document.createElement('div');actions.className='ai-actions';actions.innerHTML='<button type="button" class="ai-btn" data-action="complete">✨ Completar com IA</button><button type="button" class="ai-btn" data-action="spellcheck">✓ Corrigir ortografia</button>';editor.after(actions);
+    actions.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;b.disabled=true;const old=b.textContent;b.textContent='Aguarde…';try{const r=await api('/api/ai',{method:'POST',body:JSON.stringify({action:b.dataset.action,field:labelText,text:plainText(field),context:getAIContext(field)})});replaceUndoable(field,r.text);queueSave();}catch(err){alert(err.message)}finally{b.disabled=false;b.textContent=old}});
+  });
   async function api(url,opt={}){const r=await fetch(url,{headers:{'content-type':'application/json',...(opt.headers||{})},...opt});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Erro na requisição');return d}
   function getAIContext(activeField){
     return fields.filter(field=>field!==activeField && field.value.trim()).map(field=>{
@@ -312,11 +380,11 @@ Que nos leva à liberdade.`
       return {
         section:field.closest('.lesson-block')?.querySelector('h2')?.textContent?.trim() || 'Informações gerais da aula',
         field:label?.querySelector('span')?.textContent?.trim() || field.getAttribute('aria-label') || field.name,
-        text:field.value.trim()
+        text:plainText(field)
       };
     });
   }
-  function getData(){return Object.fromEntries(fields.map(f=>[f.name,f.value]))} function setData(d={}){fields.forEach(f=>{f.value=d[f.name]||'';if(f.tagName==='TEXTAREA')f.dispatchEvent(new Event('input'))});revision=0;savedRevision=0;clearTimeout(saveTimer);updateTitle()}
+  function getData(){return Object.fromEntries(fields.map(f=>[f.name,f.value]))} function setData(d={}){fields.forEach(f=>{f.value=d[f.name]||'';if(f.editor){renderEditor(f);f.value=f.editor.textContent.trim()?sanitizeHtml(f.editor.innerHTML):''}});revision=0;savedRevision=0;clearTimeout(saveTimer);updateTitle()}
   function title(){return $('#lessonName').value.trim() || 'Nova lição'}
   function updateTitle(){ $('#planTitle').textContent=title();updateProgress(); }
   function queueSave(){if(!currentPlan)return;revision++;updateTitle();$('#saveStatus').textContent='Salvando…';clearTimeout(saveTimer);saveTimer=setTimeout(()=>save().catch(()=>{}),1200)}
@@ -331,25 +399,59 @@ Que nos leva à liberdade.`
     finally{saving=null}
   }
   fields.forEach(f=>f.addEventListener('input',queueSave));
-  songLibrary.forEach((song,index)=>$('#songSelect').add(new Option(song.title,String(index))));
-  $('#songSelect').onchange=e=>{$('#addSong').disabled=e.target.value===''};
+  $('#savePlan').onclick=async()=>{const b=$('#savePlan');b.disabled=true;try{await save();$('#saveStatus').textContent='Rascunho salvo ✓'}catch(err){alert(err.message)}finally{b.disabled=false}};
+  let editingSongId=null;
+  const selectedSong=()=>songLibrary.find(song=>String(song.id)===$('#songSelect').value);
+  function renderSongs(selectedId=''){
+    const select=$('#songSelect');select.replaceChildren(new Option('Selecione uma música',''));
+    songLibrary.forEach(song=>select.add(new Option(song.title,String(song.id))));
+    select.value=String(selectedId);updateSongButtons();
+  }
+  function updateSongButtons(){const none=!selectedSong();['#addSong','#editSong','#deleteSong'].forEach(id=>$(id).disabled=none)}
+  async function loadSongs(){songLibrary=(await api('/api/songs')).songs;renderSongs()}
+  function openSongEditor(song){
+    editingSongId=song?song.id:null;
+    $('#songTitle').value=song?.title||'';$('#songText').value=song?.text||'';
+    $('#songEditor').hidden=false;resizeField($('#songText'));$('#songTitle').focus();
+  }
+  function closeSongEditor(){editingSongId=null;$('#songEditor').hidden=true}
+  $('#songSelect').onchange=updateSongButtons;
+  $('#newSong').onclick=()=>openSongEditor(null);
+  $('#editSong').onclick=()=>{const song=selectedSong();if(song)openSongEditor(song)};
+  $('#cancelSong').onclick=closeSongEditor;
+  $('#songText').addEventListener('input',e=>resizeField(e.target));
+  $('#saveSong').onclick=async()=>{
+    const title=$('#songTitle').value.trim(),text=$('#songText').value.trim();
+    if(!title||!text){alert('Informe o título e a letra da música.');return}
+    $('#saveSong').disabled=true;
+    try{
+      const body=JSON.stringify({title,text});
+      const song=editingSongId?await api('/api/songs/'+editingSongId,{method:'PUT',body}):await api('/api/songs',{method:'POST',body});
+      songLibrary=songLibrary.filter(s=>s.id!==song.id).concat(song).sort((a,b)=>a.title.localeCompare(b.title,'pt-BR'));
+      renderSongs(song.id);closeSongEditor();
+    }catch(err){alert(err.message)}finally{$('#saveSong').disabled=false}
+  };
+  $('#deleteSong').onclick=async()=>{
+    const song=selectedSong();if(!song||!confirm(`Excluir a música "${song.title}" da biblioteca? Isso vale para todas as professoras.`))return;
+    try{await api('/api/songs/'+song.id,{method:'DELETE'});songLibrary=songLibrary.filter(s=>s.id!==song.id);if(editingSongId===song.id)closeSongEditor();renderSongs()}
+    catch(err){alert(err.message)}
+  };
   $('#addSong').onclick=()=>{
-    const song=songLibrary[Number($('#songSelect').value)];
+    const song=selectedSong();
     if(!song)return;
     const field=$('#lessonSongs');
-    if(field.value.includes(song.text)){alert('Essa música já foi adicionada ao plano.');return}
-    field.value=[field.value.trim(),song.text].filter(Boolean).join('\n\n');
-    field.dispatchEvent(new Event('input',{bubbles:true}));
-    field.focus();
+    if(plainText(field).includes(song.text.trim())){alert('Essa música já foi adicionada ao plano.');return}
+    appendUndoable(field,song.text);
     $('#songSelect').value='';
-    $('#addSong').disabled=true;
+    updateSongButtons();
   };
   async function loadPlans(){const d=await api('/api/plans');const select=$('#planSelect');select.replaceChildren();d.plans.forEach(p=>select.add(new Option(`${p.title} · ${p.status==='final'?'Final':'Rascunho'}`,p.id)));select.value=currentPlan||'';return d.plans}
   async function openPlan(id){await save();const p=await api('/api/plans/'+id);currentPlan=id;setData(p.data);$('#planSelect').value=id;$('#saveStatus').textContent='Rascunho carregado';}
   async function createPlan(){await save();const p=await api('/api/plans',{method:'POST',body:JSON.stringify({title:'Nova lição'})});currentPlan=p.id;setData({});await loadPlans();$('#saveStatus').textContent='Novo rascunho';setSectionOpen($('#lessonName').closest('.lesson-block'),true);$('#lessonName').focus()}
   async function navigate(action){const controls=[$('#planSelect'),$('#newPlan'),$('#logout')];controls.forEach(c=>c.disabled=true);try{await action()}catch(e){$('#planSelect').value=currentPlan||'';alert(e.message)}finally{controls.forEach(c=>c.disabled=false)}}
+  $('#showPass').onchange=e=>{$('#teacherCode').type=e.target.checked?'text':'password'};
   $('#loginForm').onsubmit=async e=>{e.preventDefault();$('#loginError').textContent='';try{const d=await api('/api/login',{method:'POST',body:JSON.stringify({name:$('#teacherName').value,code:$('#teacherCode').value})});start(d.teacher)}catch(err){$('#loginError').textContent=err.message}};
-  async function start(t){$('#login').classList.add('hidden');$('#hello').textContent='Olá, '+t.name;await navigate(async()=>{const plans=await loadPlans();if(plans[0])await openPlan(plans[0].id);else await createPlan()})}
+  async function start(t){$('#login').classList.add('hidden');$('#hello').textContent='Olá, '+t.name;loadSongs().catch(err=>alert('Erro ao carregar músicas: '+err.message));await navigate(async()=>{const plans=await loadPlans();if(plans[0])await openPlan(plans[0].id);else await createPlan()})}
   $('#newPlan').onclick=()=>navigate(createPlan);
   $('#planSelect').onchange=e=>{const id=e.target.value;if(id)navigate(()=>openPlan(id))};
   $('#logout').onclick=()=>navigate(async()=>{await save();await api('/api/logout',{method:'POST'});location.reload()});

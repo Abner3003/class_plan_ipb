@@ -63,6 +63,18 @@ export default { async fetch(request,env){
     if(match&&request.method==='GET'){requireDb(env);const p=await env.DB.prepare('SELECT id,title,status,data,updated_at FROM lesson_plans WHERE id=? AND teacher_id=?').bind(match[1],me.id).first();return p?json({...p,data:JSON.parse(p.data||'{}')}):json({error:'Plano não encontrado.'},404)}
     if(match&&request.method==='PUT'){requireDb(env);if(!await allowed(env,`teacher:${me.id}`,'plan-write',120,60))return json({error:'Muitas alterações. Aguarde um minuto.'},429,{'retry-after':'60'});const body=await readJson(request,110000);if(!body.data||typeof body.data!=='object'||Array.isArray(body.data)||typeof body.title!=='string')return json({error:'Plano inválido.'},400);const data=JSON.stringify(body.data);if(data.length>100000)return json({error:'Plano muito grande.'},413);const now=new Date().toISOString();
       const r=await env.DB.prepare('UPDATE lesson_plans SET title=?,status=?,data=?,updated_at=? WHERE id=? AND teacher_id=?').bind(String(body.title||'Novo plano').slice(0,120),body.status==='final'?'final':'draft',data,now,match[1],me.id).run();return r.meta.changes?json({ok:true,updated_at:now}):json({error:'Plano não encontrado.'},404)}
+    if(url.pathname==='/api/songs'&&request.method==='GET'){requireDb(env);const rows=await env.DB.prepare('SELECT id,title,text FROM songs ORDER BY title COLLATE NOCASE').all();return json({songs:rows.results})}
+    const songMatch=url.pathname.match(/^\/api\/songs(?:\/(\d+))?$/);
+    if(songMatch&&['POST','PUT','DELETE'].includes(request.method)){
+      requireDb(env);if(!await allowed(env,`teacher:${me.id}`,'song-write',60,60))return json({error:'Muitas alterações. Aguarde um minuto.'},429,{'retry-after':'60'});
+      const id=songMatch[1]?Number(songMatch[1]):null;
+      if(request.method==='POST'&&id||request.method!=='POST'&&!id)return json({error:'Rota inválida.'},404);
+      if(request.method==='DELETE'){const r=await env.DB.prepare('DELETE FROM songs WHERE id=?').bind(id).run();return r.meta.changes?json({ok:true}):json({error:'Música não encontrada.'},404)}
+      const {title='',text=''}=await readJson(request,20000);
+      if(typeof title!=='string'||typeof text!=='string'||!title.trim()||!text.trim()||title.length>120||text.length>10000)return json({error:'Informe título e letra (máx. 120 e 10.000 caracteres).'},400);
+      if(request.method==='POST'){const row=await env.DB.prepare('INSERT INTO songs(title,text) VALUES(?,?) RETURNING id,title,text').bind(title.trim(),text.trim()).first();return json(row,201)}
+      const row=await env.DB.prepare('UPDATE songs SET title=?,text=?,updated_at=CURRENT_TIMESTAMP WHERE id=? RETURNING id,title,text').bind(title.trim(),text.trim(),id).first();return row?json(row):json({error:'Música não encontrada.'},404);
+    }
     if(url.pathname==='/api/ai'&&request.method==='POST'){
       if(!env.OPENAI_API_KEY)return json({error:'Serviço de IA não configurado.'},503);if(!await allowed(env,`teacher:${me.id}`,'ai',30,3600))return json({error:'Limite de uso da IA atingido. Tente novamente mais tarde.'},429,{'retry-after':'3600'});const body=await readJson(request,50000);const {action,field='',text='',context=[]}=body;
       if(!['complete','spellcheck'].includes(action))return json({error:'Ação inválida.'},400);if(typeof field!=='string'||field.length>200||typeof text!=='string'||text.length>5000||!Array.isArray(context)||context.length>50)return json({error:'Conteúdo inválido.'},400);
