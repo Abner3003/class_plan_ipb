@@ -168,8 +168,8 @@
 <article class="sheet">
 <header class="page-header"><div class="page-header-inner"><img class="page-header-logo" src="/logo_ipb.png" alt="Igreja Presbiteriana do Brasil"><div class="page-header-title"><strong>SALA PEDRINHA BRANCA</strong><span>Ficha de plano de aula</span></div><button type="button" id="savePlan">Salvar</button><button type="button" onclick="window.print()">Download</button></div></header>
 <div class="page-body">
-<div class="appbar"><div><strong id="hello"></strong><span id="saveStatus" class="save-status" role="status" aria-live="polite"></span></div><div class="workspace-actions"><button type="button" id="newPlan" class="top-btn">+ Novo plano</button><button type="button" id="logout" class="top-btn">Sair</button></div></div>
-<div id="plans" class="plans"><label class="plan-picker" for="planSelect"><span>Meus planos</span><select id="planSelect"><option value="">Carregando planos…</option></select></label></div>
+<div class="appbar"><div><strong id="hello"></strong><span id="saveStatus" class="save-status" role="status" aria-live="polite"></span></div><div class="workspace-actions"><button type="button" id="newPlan" class="top-btn">+ Nova aula</button><button type="button" id="logout" class="top-btn">Sair</button></div></div>
+<div id="plans" class="plans"><label class="plan-picker" for="planSelect"><span>Abrir aula</span><select id="planSelect"><option value="">Carregando aulas…</option></select></label></div>
 <div class="workspace-heading">
   <div class="progress-heading"><h1 id="planTitle" class="workspace-title">Nova lição</h1><span id="progressText">0% preenchida</span></div>
   <progress id="lessonProgress" max="100" value="0" aria-label="Preenchimento da aula">0%</progress>
@@ -312,7 +312,7 @@
         const color=child.style.color, background=child.style.backgroundColor, fontWeight=child.style.fontWeight, fontColor=child.getAttribute('color');
         [...child.attributes].forEach(attr=>child.removeAttribute(attr.name));
         if(color&&SAFE_COLOR.test(color.replace(/\s/g,'')))child.style.color=color;
-        if(background&&SAFE_COLOR.test(background.replace(/\s/g,'')))child.style.backgroundColor=background;
+        if(background&&!['DIV','P'].includes(child.tagName)&&SAFE_COLOR.test(background.replace(/\s/g,'')))child.style.backgroundColor=background;
         if(/^(bold|[6-9]00)$/.test(fontWeight))child.style.fontWeight='bold';
         if(child.tagName==='FONT'&&fontColor&&SAFE_COLOR.test(fontColor))child.setAttribute('color',fontColor);
       });
@@ -341,10 +341,10 @@
     const html=(editor.textContent.trim()?'<br><br>':'')+plainToHtml(text);
     if(!document.execCommand('insertHTML',false,html)){editor.insertAdjacentHTML('beforeend',html);syncFromEditor(field)}
   }
+  document.execCommand('styleWithCSS',false,true);
   function format(editor,command,value){
-    editor.focus();document.execCommand('styleWithCSS',false,true);
-    if(command==='hiliteColor'&&!document.execCommand('hiliteColor',false,value))document.execCommand('backColor',false,value);
-    else document.execCommand(command,false,value);
+    editor.focus();
+    document.execCommand(command,false,value);
   }
   fields.filter(field=>field.tagName==='TEXTAREA').forEach(field=>{
     const labelText=field.closest('label')?.querySelector('span')?.textContent?.trim()||field.name;
@@ -394,7 +394,7 @@
     if(!currentPlan||revision===savedRevision)return;
     const id=currentPlan, version=revision, planTitle=title();
     saving=api('/api/plans/'+id,{method:'PUT',body:JSON.stringify({title:planTitle,status:'draft',data:getData()})});
-    try{await saving;savedRevision=version;const option=[...$('#planSelect').options].find(o=>o.value===id);if(option)option.textContent=planTitle+' · Rascunho';$('#saveStatus').textContent=revision===version?'Rascunho salvo ✓':'Salvando…';}
+    try{await saving;savedRevision=version;const option=[...$('#planSelect').options].find(o=>o.value===id);if(option)option.textContent=planLabel({title:planTitle,lesson_date:$('[name=field_1]').value,updated_at:new Date().toISOString()});$('#saveStatus').textContent=revision===version?'Rascunho salvo ✓':'Salvando…';}
     catch(e){$('#saveStatus').textContent='Erro ao salvar. Tente novamente.';throw e}
     finally{saving=null}
   }
@@ -445,7 +445,14 @@
     $('#songSelect').value='';
     updateSongButtons();
   };
-  async function loadPlans(){const d=await api('/api/plans');const select=$('#planSelect');select.replaceChildren();d.plans.forEach(p=>select.add(new Option(`${p.title} · ${p.status==='final'?'Final':'Rascunho'}`,p.id)));select.value=currentPlan||'';return d.plans}
+  // "Lição 1 — Deus criou o mundo · Aula de 12/10/2026"; untitled plans fall back to when they were last edited.
+  function planLabel(p){
+    const name=p.title&&p.title!=='Nova lição'&&p.title!=='Novo plano'?p.title:'Aula sem nome';
+    const lessonDate=/^\d{4}-\d{2}-\d{2}$/.test(p.lesson_date||'')?p.lesson_date.split('-').reverse().join('/'):'';
+    const edited=p.updated_at?new Date(p.updated_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+    return [name,lessonDate?`Aula de ${lessonDate}`:edited&&`editada em ${edited}`].filter(Boolean).join(' · ');
+  }
+  async function loadPlans(){const d=await api('/api/plans');const select=$('#planSelect');select.replaceChildren();d.plans.forEach(p=>select.add(new Option(planLabel(p),p.id)));select.value=currentPlan||'';return d.plans}
   async function openPlan(id){await save();const p=await api('/api/plans/'+id);currentPlan=id;setData(p.data);$('#planSelect').value=id;$('#saveStatus').textContent='Rascunho carregado';}
   async function createPlan(){await save();const p=await api('/api/plans',{method:'POST',body:JSON.stringify({title:'Nova lição'})});currentPlan=p.id;setData({});await loadPlans();$('#saveStatus').textContent='Novo rascunho';setSectionOpen($('#lessonName').closest('.lesson-block'),true);$('#lessonName').focus()}
   async function navigate(action){const controls=[$('#planSelect'),$('#newPlan'),$('#logout')];controls.forEach(c=>c.disabled=true);try{await action()}catch(e){$('#planSelect').value=currentPlan||'';alert(e.message)}finally{controls.forEach(c=>c.disabled=false)}}

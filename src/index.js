@@ -53,7 +53,7 @@ export default { async fetch(request,env){
     const me=await auth(request,env);
     if(url.pathname.startsWith('/api/')&&!me)return json({error:'Não autenticado.'},401);
     if(url.pathname==='/api/plans'&&request.method==='GET'){
-      requireDb(env);const rows=await env.DB.prepare("SELECT id,COALESCE(NULLIF(TRIM(json_extract(data, '$.field_0')), ''),title) AS title,status,updated_at FROM lesson_plans WHERE teacher_id=? ORDER BY updated_at DESC").bind(me.id).all();return json({plans:rows.results});
+      requireDb(env);const rows=await env.DB.prepare("SELECT id,COALESCE(NULLIF(TRIM(json_extract(data, '$.field_0')), ''),title) AS title,json_extract(data, '$.field_1') AS lesson_date,status,updated_at FROM lesson_plans WHERE teacher_id=? ORDER BY updated_at DESC").bind(me.id).all();return json({plans:rows.results});
     }
     if(url.pathname==='/api/plans'&&request.method==='POST'){
       requireDb(env);if(!await allowed(env,`teacher:${me.id}`,'plan-write',120,60))return json({error:'Muitas alterações. Aguarde um minuto.'},429,{'retry-after':'60'});const {title='Novo plano'}=await readJson(request,4096);if(typeof title!=='string')return json({error:'Título inválido.'},400);const id=crypto.randomUUID();const now=new Date().toISOString();
