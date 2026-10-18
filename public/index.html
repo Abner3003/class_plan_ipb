@@ -153,7 +153,12 @@
   .rich-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:4px; padding:5px 6px; border:1px solid var(--line); border-bottom:0; border-radius:8px 8px 0 0; background:#f5f8f6; font-weight:400; font-size:11px; color:var(--muted); }
   .rich-toolbar button { min-width:26px; height:26px; padding:0 6px; border:1px solid var(--line); border-radius:5px; background:#fff; color:var(--navy); cursor:pointer; font:700 13px Arial,Helvetica,sans-serif; }
   .rich-toolbar button:hover { border-color:#93b4a3; }
-  .rich-toolbar .swatch { min-width:22px; width:22px; height:22px; padding:0; border-radius:50%; }
+  .rich-toolbar .color-tool { display:inline-flex; align-items:center; gap:2px; }
+  .rich-toolbar .apply-color { border-bottom-width:4px; }
+  .rich-toolbar input[type=color] { display:inline-block; width:30px; height:26px; padding:2px; border:1px solid var(--line); border-radius:5px; background:#fff; cursor:pointer; }
+  .rich-toolbar .sep { display:inline-block; }
+  /* The editor sits inside a <label>; undo the global "label span" block styling for formatted text. */
+  .rich-editor span { display:inline; margin:0; }
   .rich-toolbar .sep { width:1px; height:18px; margin:0 4px; background:var(--line); }
   .rich-editor { min-height:var(--field-height, 75px); padding:12px; border:1px solid var(--line); border-radius:0 0 8px 8px; background:#fff; color:var(--navy); font:14px/1.5 Arial,Helvetica,sans-serif; font-weight:400; white-space:pre-wrap; overflow-wrap:anywhere; outline:none; cursor:text; }
   .rich-editor:hover { border-color:#93b4a3; }
@@ -293,8 +298,6 @@
   }
   fields.forEach(field=>field.addEventListener('input',updateProgress));
   updateProgress();
-  const TEXT_COLORS=[['Azul escuro','#163d65'],['Vermelho','#c0392b'],['Azul','#1f6fd1'],['Verde','#1e7b45'],['Roxo','#7b3fa0'],['Laranja','#d35400']];
-  const HIGHLIGHTS=[['Amarelo','#fff3a3'],['Verde claro','#c9f2d0'],['Rosa','#ffd1e3'],['Azul claro','#cfe6ff']];
   const escapeHtml=text=>text.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
   const plainToHtml=text=>escapeHtml(text).replace(/\n/g,'<br>');
   const looksLikeHtml=value=>/<(br|div|p|span|b|strong|i|em|u|font|mark)\b[^>]*>/i.test(value);
@@ -342,18 +345,34 @@
     if(!document.execCommand('insertHTML',false,html)){editor.insertAdjacentHTML('beforeend',html);syncFromEditor(field)}
   }
   document.execCommand('styleWithCSS',false,true);
+  // Remember each editor's last selection: the native colour picker takes focus away from it.
+  const savedRanges=new WeakMap();
+  document.addEventListener('selectionchange',()=>{
+    const sel=getSelection();if(!sel.rangeCount)return;
+    const editor=sel.anchorNode&&(sel.anchorNode.nodeType===Node.ELEMENT_NODE?sel.anchorNode:sel.anchorNode.parentElement)?.closest('.rich-editor');
+    if(editor)savedRanges.set(editor,sel.getRangeAt(0).cloneRange());
+  });
   function format(editor,command,value){
     editor.focus();
+    const range=savedRanges.get(editor);
+    if(range&&document.activeElement===editor){const sel=getSelection();sel.removeAllRanges();sel.addRange(range)}
     document.execCommand(command,false,value);
   }
   fields.filter(field=>field.tagName==='TEXTAREA').forEach(field=>{
     const labelText=field.closest('label')?.querySelector('span')?.textContent?.trim()||field.name;
     const toolbar=document.createElement('div');toolbar.className='rich-toolbar';toolbar.setAttribute('role','toolbar');toolbar.setAttribute('aria-label','Formatação: '+labelText);
-    const tool=(label,title,command,value,style)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.title=title;b.setAttribute('aria-label',title);b.dataset.command=command;if(value)b.dataset.value=value;if(style){b.className='swatch';b.style.background=style}toolbar.append(b)};
-    const sep=text=>{const s=document.createElement('span');s.className='sep';toolbar.append(s);if(text)toolbar.append(text)};
+    const tool=(label,title,command,value,parent=toolbar)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.title=title;b.setAttribute('aria-label',title);b.dataset.command=command;if(value)b.dataset.value=value;parent.append(b);return b};
+    const sep=()=>{const s=document.createElement('span');s.className='sep';toolbar.append(s)};
+    // A button applies the current colour; the picker beside it chooses a new one and applies it straight away.
+    const colorTool=(label,title,command,initial,paint)=>{
+      const group=document.createElement('span');group.className='color-tool';toolbar.append(group);
+      const button=tool(label,title,command,initial,group);button.classList.add('apply-color');paint(button,initial);
+      const picker=document.createElement('input');picker.type='color';picker.value=initial;picker.title='Escolher cor';picker.setAttribute('aria-label',title+': escolher cor');group.append(picker);
+      picker.addEventListener('change',()=>{button.dataset.value=picker.value;paint(button,picker.value);format(editor,command,picker.value)});
+    };
     tool('B','Negrito','bold');
-    sep('Cor:');TEXT_COLORS.forEach(([name,color])=>tool('',`Cor do texto: ${name}`,'foreColor',color,color));
-    sep('Destaque:');HIGHLIGHTS.forEach(([name,color])=>tool('',`Destaque: ${name}`,'hiliteColor',color,color));
+    sep();colorTool('A','Cor do texto','foreColor','#c0392b',(b,c)=>{b.style.color=c;b.style.borderBottomColor=c});
+    sep();colorTool('Destacar','Destaque','hiliteColor','#fff3a3',(b,c)=>{b.style.background=c});
     tool('✕','Remover destaque','hiliteColor','transparent');
     sep();tool('Limpar','Remover formatação','removeFormat');
     const editor=document.createElement('div');editor.className='rich-editor';editor.contentEditable='true';
