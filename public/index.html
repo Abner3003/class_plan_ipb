@@ -222,10 +222,10 @@
   <p class="song-library-help">A música será adicionada ao final do campo acima. Você ainda pode editar a letra normalmente. Alterações na biblioteca valem para todas as professoras.</p>
 </div>
 <label><span>Oração para iniciar a aula (fala, gesto ou condução)</span><textarea name="field_9" id="prayerField" style="--field-height:85px"></textarea></label>
-<div class="song-library" aria-label="Música para a oração">
+<div class="song-library song-picker" data-target="#prayerField" data-label="à oração" aria-label="Música para a oração">
   <div class="song-library-controls">
-    <label for="prayerSongSelect"><span>Escolher música para a oração</span><select id="prayerSongSelect"><option value="">Selecione uma música</option></select></label>
-    <button type="button" id="addPrayerSong" class="top-btn" disabled>+ Adicionar à oração</button>
+    <label><span>Escolher música para a oração</span><select><option value="">Selecione uma música</option></select></label>
+    <button type="button" class="top-btn" disabled>+ Adicionar à oração</button>
   </div>
   <p class="song-library-help">Usa a mesma biblioteca de músicas acima. A letra será adicionada ao final do campo de oração.</p>
 </div>
@@ -240,13 +240,19 @@
 
 
 <div class="section"><h2>5. RELAXAMENTO</h2><p>Momento de calma antes da atividade; inclua a memorização do versículo.</p></div>
-<label><span>Música(s), letra / referência, gestos e condução</span><textarea name="field_14" style="--field-height:215px"></textarea></label>
+<label><span>Música(s), letra / referência, gestos e condução</span><textarea name="field_14" id="relaxField" style="--field-height:215px"></textarea></label>
+<div class="song-library song-picker" data-target="#relaxField" data-label="ao relaxamento" aria-label="Música para o relaxamento">
+  <div class="song-library-controls">
+    <label><span>Escolher música para o relaxamento</span><select><option value="">Selecione uma música</option></select></label>
+    <button type="button" class="top-btn" disabled>+ Adicionar ao relaxamento</button>
+  </div>
+  <p class="song-library-help">Usa a mesma biblioteca de músicas. A letra será adicionada ao final do campo acima.</p>
+</div>
 <label><span>Momento de oração pelos amigos, escolha uma criança para orar.</span><textarea name="field_15" style="--field-height:165px"></textarea></label>
 <div class="section"><h2>6. ATIVIDADE</h2><p>Descreva a atividade</p></div>
 <label><span>Passo a passo da atividade com as crianças</span><textarea name="field_16" style="--field-height:220px"></textarea></label>
 
 
-<label><span>Materiais da atividade e preparação prévia</span><textarea name="field_17" style="--field-height:185px"></textarea></label>
 <div class="section"><h2>7. ENCERRAMENTO</h2></div>
 <label><span>Música / fala de despedida, guardar brinquedos e transição</span><textarea name="field_18" style="--field-height:180px"></textarea></label>
 <label><span>Lanche: momento, organização e cuidados combinados</span><textarea name="field_19" style="--field-height:150px"></textarea></label>
@@ -435,13 +441,18 @@
     const select=$('#songSelect');select.replaceChildren(new Option('Selecione uma música',''));
     songLibrary.forEach(song=>select.add(new Option(song.title,String(song.id))));
     select.value=String(selectedId);
-    const prayerSelect=$('#prayerSongSelect'),prayerValue=prayerSelect.value;prayerSelect.replaceChildren(new Option('Selecione uma música',''));
-    songLibrary.forEach(song=>prayerSelect.add(new Option(song.title,String(song.id))));
-    prayerSelect.value=songLibrary.some(song=>String(song.id)===prayerValue)?prayerValue:'';
+    document.querySelectorAll('.song-picker select').forEach(pick=>{
+      const value=pick.value;pick.replaceChildren(new Option('Selecione uma música',''));
+      songLibrary.forEach(song=>pick.add(new Option(song.title,String(song.id))));
+      pick.value=songLibrary.some(song=>String(song.id)===value)?value:'';
+    });
     updateSongButtons();
   }
-  const selectedPrayerSong=()=>songLibrary.find(song=>String(song.id)===$('#prayerSongSelect').value);
-  function updateSongButtons(){const none=!selectedSong();['#addSong','#editSong','#deleteSong'].forEach(id=>$(id).disabled=none);$('#addPrayerSong').disabled=!selectedPrayerSong()}
+  const pickedSong=picker=>songLibrary.find(song=>String(song.id)===picker.querySelector('select').value);
+  function updateSongButtons(){
+    const none=!selectedSong();['#addSong','#editSong','#deleteSong'].forEach(id=>$(id).disabled=none);
+    document.querySelectorAll('.song-picker').forEach(picker=>picker.querySelector('button').disabled=!pickedSong(picker));
+  }
   async function loadSongs(){songLibrary=(await api('/api/songs')).songs;renderSongs()}
   function openSongEditor(song){
     editingSongId=song?song.id:null;
@@ -450,16 +461,19 @@
   }
   function closeSongEditor(){editingSongId=null;$('#songEditor').hidden=true}
   $('#songSelect').onchange=updateSongButtons;
-  $('#prayerSongSelect').onchange=updateSongButtons;
-  $('#addPrayerSong').onclick=()=>{
-    const song=selectedPrayerSong();
-    if(!song)return;
-    const field=$('#prayerField');
-    if(plainText(field).includes(song.text.trim())){alert('Essa música já foi adicionada à oração.');return}
-    appendUndoable(field,song.text);
-    $('#prayerSongSelect').value='';
-    updateSongButtons();
-  };
+  // Song pickers next to other fields (prayer, relaxation) reuse the shared library.
+  document.querySelectorAll('.song-picker').forEach(picker=>{
+    picker.querySelector('select').onchange=updateSongButtons;
+    picker.querySelector('button').onclick=()=>{
+      const song=pickedSong(picker);
+      if(!song)return;
+      const field=$(picker.dataset.target);
+      if(plainText(field).includes(song.text.trim())){alert(`Essa música já foi adicionada ${picker.dataset.label}.`);return}
+      appendUndoable(field,song.text);
+      picker.querySelector('select').value='';
+      updateSongButtons();
+    };
+  });
   $('#newSong').onclick=()=>openSongEditor(null);
   $('#editSong').onclick=()=>{const song=selectedSong();if(song)openSongEditor(song)};
   $('#cancelSong').onclick=closeSongEditor;
