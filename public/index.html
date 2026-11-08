@@ -183,6 +183,14 @@
 <p class="intro">Clique em uma seção para editar. Suas alterações são salvas automaticamente.</p>
 <div class="section"><h2>OBJETIVOS DA AULA</h2><p>O que as crianças devem aprender e vivenciar nesta aula.</p></div>
 <label><span>Objetivos da aula</span><textarea name="lesson_objectives" style="--field-height:110px"></textarea></label>
+
+
+<div class="section"><h2>PREPARAÇÃO / MATERIAIS</h2></div>
+<label><span>O que levar: quantidade, preparo e quem ficará responsável</span><textarea name="field_12" style="--field-height:205px"></textarea></label>
+<div class="section"><h2>4. PARLENDA</h2><p>Levar em conta a acentuação correta das palavras para que esteja de acordo com a métrica.</p></div>
+<label><span>Texto e orientações para a parlenda</span><textarea name="field_13" style="--field-height:235px"></textarea></label>
+
+
 <div class="section"><h2>INFORMAÇÕES DA AULA</h2></div>
 <div class="grid three"><label><span>Nome da lição / número</span><input name="field_0" id="lessonName" aria-label="Nome da lição ou número" placeholder="Ex.: Lição 1 — Deus criou o mundo"></label><label><span>Data</span><input name="field_1" type="date" aria-label="Data"></label><label><span>Turma / faixa etária</span><input name="field_2" aria-label="Turma ou faixa etária"></label></div>
 <label><span>Tema da aula</span><textarea name="field_3" style="--field-height:54px"></textarea></label>
@@ -213,7 +221,14 @@
   </div>
   <p class="song-library-help">A música será adicionada ao final do campo acima. Você ainda pode editar a letra normalmente. Alterações na biblioteca valem para todas as professoras.</p>
 </div>
-<label><span>Oração para iniciar a aula (fala, gesto ou condução)</span><textarea name="field_9" style="--field-height:85px"></textarea></label>
+<label><span>Oração para iniciar a aula (fala, gesto ou condução)</span><textarea name="field_9" id="prayerField" style="--field-height:85px"></textarea></label>
+<div class="song-library" aria-label="Música para a oração">
+  <div class="song-library-controls">
+    <label for="prayerSongSelect"><span>Escolher música para a oração</span><select id="prayerSongSelect"><option value="">Selecione uma música</option></select></label>
+    <button type="button" id="addPrayerSong" class="top-btn" disabled>+ Adicionar à oração</button>
+  </div>
+  <p class="song-library-help">Usa a mesma biblioteca de músicas acima. A letra será adicionada ao final do campo de oração.</p>
+</div>
 
 
 <div class="section"><h2>2. LIÇÃO ANTERIOR / REVISÃO</h2></div>
@@ -222,26 +237,21 @@
 <label><span>Aula - Espaço para a descrição das músicas e da história bíblica</span><textarea name="field_11" style="--field-height:170px"></textarea></label>
 
 
-<div class="section"><h2>4. PREPARAÇÃO / MATERIAIS</h2></div>
-<label><span>O que levar: quantidade, preparo e quem ficará responsável</span><textarea name="field_12" style="--field-height:205px"></textarea></label>
-<div class="section"><h2>5. PARLENDA</h2><p>Levar em conta a acentuação correta das palavras para que esteja de acordo com a métrica.</p></div>
-<label><span>Texto e orientações para a parlenda</span><textarea name="field_13" style="--field-height:235px"></textarea></label>
 
 
-<div class="section"><h2>6. REFLEXÃO PARA AS MÃES</h2><p>Uma mensagem bíblica para encorajar as mães e aplicar no dia a dia com os filhos.</p></div>
-<label><span>Reflexão para as mães</span><textarea name="mothers_reflection" style="--field-height:150px"></textarea></label>
-
-<div class="section"><h2>7. RELAXAMENTO</h2><p>Momento de calma antes da atividade; inclua a memorização do versículo.</p></div>
+<div class="section"><h2>5. RELAXAMENTO</h2><p>Momento de calma antes da atividade; inclua a memorização do versículo.</p></div>
 <label><span>Música(s), letra / referência, gestos e condução</span><textarea name="field_14" style="--field-height:215px"></textarea></label>
 <label><span>Momento de oração pelos amigos, escolha uma criança para orar.</span><textarea name="field_15" style="--field-height:165px"></textarea></label>
-<div class="section"><h2>8. ATIVIDADE</h2><p>Descreva a atividade</p></div>
+<div class="section"><h2>6. ATIVIDADE</h2><p>Descreva a atividade</p></div>
 <label><span>Passo a passo da atividade com as crianças</span><textarea name="field_16" style="--field-height:220px"></textarea></label>
 
 
 <label><span>Materiais da atividade e preparação prévia</span><textarea name="field_17" style="--field-height:185px"></textarea></label>
-<div class="section"><h2>9. ENCERRAMENTO</h2></div>
+<div class="section"><h2>7. ENCERRAMENTO</h2></div>
 <label><span>Música / fala de despedida, guardar brinquedos e transição</span><textarea name="field_18" style="--field-height:180px"></textarea></label>
 <label><span>Lanche: momento, organização e cuidados combinados</span><textarea name="field_19" style="--field-height:150px"></textarea></label>
+<div class="section"><h2>8. REFLEXÃO PARA AS MÃES</h2><p>Uma mensagem bíblica para encorajar as mães e aplicar no dia a dia com os filhos.</p></div>
+<label><span>Reflexão para as mães</span><textarea name="mothers_reflection" style="--field-height:150px"></textarea></label>
 <div class="grid two"><label><span>Professora responsável</span><input name="field_20"></label><label><span>Plano revisado em</span><input name="field_21" type="date"></label></div>
 
 </div>
@@ -424,9 +434,14 @@
   function renderSongs(selectedId=''){
     const select=$('#songSelect');select.replaceChildren(new Option('Selecione uma música',''));
     songLibrary.forEach(song=>select.add(new Option(song.title,String(song.id))));
-    select.value=String(selectedId);updateSongButtons();
+    select.value=String(selectedId);
+    const prayerSelect=$('#prayerSongSelect'),prayerValue=prayerSelect.value;prayerSelect.replaceChildren(new Option('Selecione uma música',''));
+    songLibrary.forEach(song=>prayerSelect.add(new Option(song.title,String(song.id))));
+    prayerSelect.value=songLibrary.some(song=>String(song.id)===prayerValue)?prayerValue:'';
+    updateSongButtons();
   }
-  function updateSongButtons(){const none=!selectedSong();['#addSong','#editSong','#deleteSong'].forEach(id=>$(id).disabled=none)}
+  const selectedPrayerSong=()=>songLibrary.find(song=>String(song.id)===$('#prayerSongSelect').value);
+  function updateSongButtons(){const none=!selectedSong();['#addSong','#editSong','#deleteSong'].forEach(id=>$(id).disabled=none);$('#addPrayerSong').disabled=!selectedPrayerSong()}
   async function loadSongs(){songLibrary=(await api('/api/songs')).songs;renderSongs()}
   function openSongEditor(song){
     editingSongId=song?song.id:null;
@@ -435,6 +450,16 @@
   }
   function closeSongEditor(){editingSongId=null;$('#songEditor').hidden=true}
   $('#songSelect').onchange=updateSongButtons;
+  $('#prayerSongSelect').onchange=updateSongButtons;
+  $('#addPrayerSong').onclick=()=>{
+    const song=selectedPrayerSong();
+    if(!song)return;
+    const field=$('#prayerField');
+    if(plainText(field).includes(song.text.trim())){alert('Essa música já foi adicionada à oração.');return}
+    appendUndoable(field,song.text);
+    $('#prayerSongSelect').value='';
+    updateSongButtons();
+  };
   $('#newSong').onclick=()=>openSongEditor(null);
   $('#editSong').onclick=()=>{const song=selectedSong();if(song)openSongEditor(song)};
   $('#cancelSong').onclick=closeSongEditor;
